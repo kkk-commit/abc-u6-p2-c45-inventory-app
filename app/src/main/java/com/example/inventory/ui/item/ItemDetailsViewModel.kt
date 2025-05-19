@@ -60,9 +60,8 @@ class ItemDetailsViewModel(
         }
     }
 
-    fun deleteItem() = viewModelScope.launch {
-        val currentItem = uiState.value.itemDetails.toItem()
-        itemsRepository.deleteItem(currentItem)
+    suspend fun deleteItem() {
+        itemsRepository.deleteItem(uiState.value.itemDetails.toItem())
     }
 
     companion object {
