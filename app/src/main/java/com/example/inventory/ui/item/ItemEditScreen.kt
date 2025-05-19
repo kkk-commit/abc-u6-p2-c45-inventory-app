@@ -54,7 +54,6 @@ fun ItemEditScreen(
     modifier: Modifier = Modifier,
     viewModel: ItemEditViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val uiState by viewModel.itemUiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -67,7 +66,7 @@ fun ItemEditScreen(
         modifier = modifier
     ) { innerPadding ->
         ItemEntryBody(
-            itemUiState = uiState,
+            itemUiState = viewModel.itemUiState,
             onItemValueChange = viewModel::updateUiState,
             onSaveClick = {
                 coroutineScope.launch {
