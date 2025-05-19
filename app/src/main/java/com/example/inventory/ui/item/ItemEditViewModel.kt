@@ -16,31 +16,67 @@
 
 package com.example.inventory.ui.item
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.inventory.data.ItemsRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel to retrieve and update an item from the [ItemsRepository]'s data source.
  */
 class ItemEditViewModel(
     savedStateHandle: SavedStateHandle,
+    private val itemsRepository: ItemsRepository
 ) : ViewModel() {
 
     /**
      * Holds current item ui state
      */
-    var itemUiState by mutableStateOf(ItemUiState())
-        private set
+//    var itemUiState by mutableStateOf(ItemUiState())
+//        private set
 
     private val itemId: Int = checkNotNull(savedStateHandle[ItemEditDestination.itemIdArg])
 
-    private fun validateInput(uiState: ItemDetails = itemUiState.itemDetails): Boolean {
+    private val _itemUiState: MutableStateFlow<ItemUiState> =
+        itemsRepository.getItemStream(itemId)
+            .filterNotNull()
+            .map {
+                ItemUiState(
+                    itemDetails = it.toItemDetails(),
+                    isEntryValid = validateInput(it.toItemDetails())
+                )
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+                initialValue = ItemUiState()
+            ) as MutableStateFlow<ItemUiState>
+    val itemUiState: StateFlow<ItemUiState> = _itemUiState
+
+    fun updateUiState(itemDetails: ItemDetails) {
+        _itemUiState.value =
+            ItemUiState(itemDetails = itemDetails, isEntryValid = validateInput(itemDetails))
+    }
+
+    suspend fun saveItem() {
+        if (validateInput()) {
+            itemsRepository.updateItem(itemUiState.value.itemDetails.toItem())
+        }
+    }
+
+    private fun validateInput(uiState: ItemDetails = itemUiState.value.itemDetails): Boolean {
         return with(uiState) {
             name.isNotBlank() && price.isNotBlank() && quantity.isNotBlank()
         }
+    }
+
+    companion object {
+        private const val TIMEOUT_MILLIS = 5_000L
     }
 }
