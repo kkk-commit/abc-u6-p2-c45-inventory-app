@@ -69,4 +69,14 @@ class ItemDaoTest {
         assertEquals(allItems[0], item1)
         assertEquals(allItems[1], item2)
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun daoUpdateItems_updatesItemsInDB() = runBlocking {
+        addOneItemToDb()
+        val item1DecrementedQty = item1.copy(quantity = item1.quantity.dec())
+        itemDao.update(item1DecrementedQty)
+        val itemUpdated = itemDao.getItem(item1.id).first()
+        assertEquals(item1DecrementedQty, itemUpdated)
+    }
 }
