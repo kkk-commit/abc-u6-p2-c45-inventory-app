@@ -43,7 +43,7 @@ class ItemDetailsViewModel(
             .filterNotNull()
             .map {
                 ItemDetailsUiState(
-                    outOfStock = it.quantity == 0,
+                    outOfStock = it.quantity <= 0,
                     itemDetails = it.toItemDetails()
                 )
             }.stateIn(
@@ -53,9 +53,11 @@ class ItemDetailsViewModel(
             )
 
 
-    fun sellOneItem() = viewModelScope.launch {
+    fun reduceQuantityByOne() = viewModelScope.launch {
         val currentItem = uiState.value.itemDetails.toItem()
-        itemsRepository.updateItem(currentItem.copy(quantity = currentItem.quantity.dec()))
+        if (currentItem.quantity > 0) {
+            itemsRepository.updateItem(currentItem.copy(quantity = currentItem.quantity.dec()))
+        }
     }
 
     companion object {
