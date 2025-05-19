@@ -101,7 +101,8 @@ fun ItemDetailsScreen(
         ItemDetailsBody(
             itemDetailsUiState = uiState,
             onSellItem = viewModel::reduceQuantityByOne,
-            onDelete = { },
+            onDelete = viewModel::deleteItem,
+            navigateUp = navigateBack,
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
@@ -118,6 +119,7 @@ private fun ItemDetailsBody(
     itemDetailsUiState: ItemDetailsUiState,
     onSellItem: () -> Unit,
     onDelete: () -> Unit,
+    navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -150,6 +152,7 @@ private fun ItemDetailsBody(
                 onDeleteConfirm = {
                     deleteConfirmationRequired = false
                     onDelete()
+                    navigateUp()
                 },
                 onDeleteCancel = { deleteConfirmationRequired = false },
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))
@@ -245,7 +248,8 @@ fun ItemDetailsScreenPreview() {
                 itemDetails = ItemDetails(1, "Pen", "$100", "10")
             ),
             onSellItem = {},
-            onDelete = {}
+            onDelete = {},
+            navigateUp = {}
         )
     }
 }
