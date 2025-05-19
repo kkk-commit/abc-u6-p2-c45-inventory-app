@@ -45,7 +45,7 @@ class ItemEditViewModel(
     init {
         viewModelScope.launch {
             itemsRepository.getItemStream(itemId).filterNotNull().collect {
-                itemUiState = it.toItemUiState()
+                itemUiState = it.toItemUiState(true)
             }
         }
     }
